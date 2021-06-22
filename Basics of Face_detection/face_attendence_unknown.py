@@ -4,26 +4,30 @@ import face_recognition
 import os
 from datetime import datetime
 paths=["Images/Known_images","Images/Unknown_images"]
+from PIL import Image 
+import PIL 
 images=[]
 photonames=[]
-
-
+Unknown_names=[]
 for index,path in enumerate(paths):
     myList=os.listdir(paths[index])
     for items in myList:
-        # print(items)
+        print(items)
         curImg=cv2.imread(f'{path}/{items}')
         
         images.append(curImg)
         photonames.append(os.path.splitext(items)[0])
+print(photonames)
+
+known_face_encodings=[]
 def findEncodings(images):
-    encodings=[]
+    
     for img in images:
         img=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
         encode=face_recognition.face_encodings(img)[0]
-        encodings.append(encode)
-    return encodings
-known_face_encodings=findEncodings(images)
+        known_face_encodings.append(encode)
+    
+findEncodings(images)
 def MarkAttendance(name):
     with open ('Attendance.csv','r+') as f:
         myDataList=f.readlines()
@@ -50,19 +54,30 @@ while True:
        
         # print(matchIndex)
         name="Unknown"
-        # Unknown_list=0
+        Unknown_list=0
         if True in matches:
              matchIndex=np.argmin(faceDistance)
              
              name=photonames[matchIndex]
-             print(name)
-        # if name=="Unknown":
-        #     name="Unknown"+str(Unknown_list+1)
-
-
+             
+        
         y1,x2,y2,x1=facelocations
         y1,x2,y2,x1=y1*4,x2*4,y2*4,x1*4
         cv2.rectangle(img,(x1,y1),(x2+30,y2+30),(0,255,0),2)
+
+        if name not in photonames:
+            
+            name="Unknown"+str(Unknown_list+1)
+
+            cv2.imwrite(f'{paths[1]}/{name}.jpg', img)
+            l1=cv2.imread(f'{paths[1]}/{name}.jpg')
+            images.append(l1)
+            photonames.append(name)
+            findEncodings(images)
+            
+        
+
+
         cv2.rectangle(img,(x1,y2-5),(x2+30,y2+30),(0,255,0),cv2.FILLED)
         cv2.putText(img,name,(x1,y2+20),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
         MarkAttendance(name)
