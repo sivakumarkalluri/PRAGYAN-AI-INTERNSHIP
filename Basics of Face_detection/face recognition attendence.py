@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import face_recognition 
 import os
+from datetime import datetime
 path='Images'
 images=[]
 photonames=[]
@@ -19,6 +20,18 @@ def findEncodings(images):
         encodings.append(encode)
     return encodings
 known_face_encodings=findEncodings(images)
+def MarkAttendance(name):
+    with open ('Attendance.csv','r+') as f:
+        myDataList=f.readlines()
+        nameList=[]
+        for line in myDataList:
+            entry=line.split(',')
+            nameList.append(entry[0])
+        if name not in nameList:
+            Time_now=datetime.now()
+            time_string=Time_now.strftime('%H:%M:%S')
+            f.writelines(f'\n{name},{time_string}')
+
 video_capture=cv2.VideoCapture(0)
 while True:
     ret,img=video_capture.read()
@@ -33,16 +46,22 @@ while True:
        
         # print(matchIndex)
         name="Unknown"
+        Unknown_list=0
         if True in matches:
              matchIndex=np.argmin(faceDistance)
              
              name=photonames[matchIndex]
              print(name)
+        if name=="Unknown":
+            name="Unknown"+str(Unknown_list+1)
+
+
         y1,x2,y2,x1=facelocations
         y1,x2,y2,x1=y1*4,x2*4,y2*4,x1*4
         cv2.rectangle(img,(x1,y1),(x2+30,y2+30),(0,255,0),2)
         cv2.rectangle(img,(x1,y2-5),(x2+30,y2+30),(0,255,0),cv2.FILLED)
         cv2.putText(img,name,(x1,y2+20),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
+        MarkAttendance(name)
     cv2.imshow('face_rcognisation',img)
     if cv2.waitKey(1) & 0xFF==ord('q'):
         break
