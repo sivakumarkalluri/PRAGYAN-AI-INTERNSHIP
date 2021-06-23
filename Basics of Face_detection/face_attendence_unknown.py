@@ -19,12 +19,15 @@ for index,path in enumerate(paths):
         photonames.append(os.path.splitext(items)[0])
         if path=="Images/Unknown_images":
             Unknown_names.append(os.path.splitext(items)[0])
-Unknown_name_last=os.path.splitext(Unknown_names[-1])[0]
-print(Unknown_name_last)
+if len(Unknown_names)>0:
+    Unknown_name_last=os.path.splitext(Unknown_names[-1])[0]
+    print(Unknown_name_last)
 
 
-Unknown_last=int(Unknown_name_last[7:])
-print(Unknown_last)
+    Unknown_last=int(Unknown_name_last[7:])
+    print(Unknown_last)
+elif len(Unknown_names)==0:
+    Unknown_last=0
 print(photonames)
 
 known_face_encodings=[]
