@@ -17,6 +17,14 @@ for index,path in enumerate(paths):
         
         images.append(curImg)
         photonames.append(os.path.splitext(items)[0])
+        if path=="Images/Unknown_images":
+            Unknown_names.append(os.path.splitext(items)[0])
+Unknown_name_last=os.path.splitext(Unknown_names[-1])[0]
+print(Unknown_name_last)
+
+
+Unknown_last=int(Unknown_name_last[7:])
+print(Unknown_last)
 print(photonames)
 
 known_face_encodings=[]
@@ -54,7 +62,7 @@ while True:
        
         # print(matchIndex)
         name="Unknown"
-        Unknown_list=0
+        
         if True in matches:
              matchIndex=np.argmin(faceDistance)
              
@@ -66,15 +74,20 @@ while True:
         cv2.rectangle(img,(x1,y1),(x2+30,y2+30),(0,255,0),2)
 
         if name not in photonames:
+            Unknown_last+=1
             
-            name="Unknown"+str(Unknown_list+1)
-
+            name="Unknown"+str(Unknown_last)
             cv2.imwrite(f'{paths[1]}/{name}.jpg', img)
             l1=cv2.imread(f'{paths[1]}/{name}.jpg')
-            images.append(l1)
-            photonames.append(name)
-            findEncodings(images)
+            img1=cv2.cvtColor(l1,cv2.COLOR_BGR2RGB)
             
+            
+            encode1=face_recognition.face_encodings(img1)[0]
+            known_face_encodings.append(encode1)
+           
+            photonames.append(name)
+            # Unknown_list.append(name)
+           
         
 
 
