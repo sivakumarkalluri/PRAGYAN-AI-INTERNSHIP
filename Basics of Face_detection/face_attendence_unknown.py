@@ -35,8 +35,17 @@ def findEncodings(images):
     
     for img in images:
         img=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-        encode=face_recognition.face_encodings(img)[0]
-        known_face_encodings.append(encode)
+        try: 
+            encode=face_recognition.face_encodings(img)[0]
+            if len(encode)>0:
+                known_face_encodings.append(encode)
+
+        
+                
+        except IndexError as e:
+                continue
+        
+        
     
 findEncodings(images)
 def MarkAttendance(name):
@@ -65,30 +74,44 @@ while True:
        
         # print(matchIndex)
         name="Unknown"
-        
+       
         if True in matches:
              matchIndex=np.argmin(faceDistance)
              
              name=photonames[matchIndex]
              
+             
         
         y1,x2,y2,x1=facelocations
         y1,x2,y2,x1=y1*4,x2*4,y2*4,x1*4
         cv2.rectangle(img,(x1,y1),(x2+30,y2+30),(0,255,0),2)
+       
 
-        if name not in photonames:
-            Unknown_last+=1
+        if name not in photonames: 
+            try:
+                img1=cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+                encode1=face_recognition.face_encodings(img1)[0]
+                if len(encode1)>0:
+                    Unknown_last+=1
+                    name="Unknown"+str(Unknown_last)
+               
+                    cv2.imwrite(f'{paths[1]}/{name}.jpg', img)
+                    known_face_encodings.append(encode1)
+                    print(f'{name} face detected ')
+                    
             
-            name="Unknown"+str(Unknown_last)
-            cv2.imwrite(f'{paths[1]}/{name}.jpg', img)
-            l1=cv2.imread(f'{paths[1]}/{name}.jpg')
-            img1=cv2.cvtColor(l1,cv2.COLOR_BGR2RGB)
+                    photonames.append(name)
+                
+            except IndexError as e:
+                
+                print("Face is not detecting wait sometime.......")
+                    
+                continue
+
             
             
-            encode1=face_recognition.face_encodings(img1)[0]
-            known_face_encodings.append(encode1)
-           
-            photonames.append(name)
+            
+            
             # Unknown_list.append(name)
            
         
@@ -96,6 +119,7 @@ while True:
 
         cv2.rectangle(img,(x1,y2-5),(x2+30,y2+30),(0,255,0),cv2.FILLED)
         cv2.putText(img,name,(x1,y2+20),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
+        print(f'{name} face detected ')
         MarkAttendance(name)
     cv2.imshow('face_rcognisation',img)
     if cv2.waitKey(1) & 0xFF==ord('q'):
