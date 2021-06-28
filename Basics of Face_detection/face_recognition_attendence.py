@@ -2,17 +2,16 @@ import cv2
 import numpy as np
 import face_recognition 
 import os
-from datetime import datetime
+import csv
+from datetime import date, datetime
 paths=["Images/Known_images","Images/Unknown_images"]
-from PIL import Image 
-import PIL 
 images=[]
 photonames=[]
 Unknown_names=[]
 for index,path in enumerate(paths):
     myList=os.listdir(paths[index])
     for items in myList:
-        print(items)
+        # print(items)
         curImg=cv2.imread(f'{path}/{items}')
         
         images.append(curImg)
@@ -21,14 +20,12 @@ for index,path in enumerate(paths):
             Unknown_names.append(os.path.splitext(items)[0])
 if len(Unknown_names)>0:
     Unknown_name_last=os.path.splitext(Unknown_names[-1])[0]
-    print(Unknown_name_last)
-
-
+    # print(Unknown_name_last)
     Unknown_last=int(Unknown_name_last[7:])
     print(Unknown_last)
 elif len(Unknown_names)==0:
     Unknown_last=0
-print(photonames)
+# print(photonames)
 
 known_face_encodings=[]
 def findEncodings(images):
@@ -39,9 +36,7 @@ def findEncodings(images):
             encode=face_recognition.face_encodings(img)[0]
             if len(encode)>0:
                 known_face_encodings.append(encode)
-
         
-                
         except IndexError as e:
                 continue
         
@@ -49,16 +44,39 @@ def findEncodings(images):
     
 findEncodings(images)
 def MarkAttendance(name):
-    with open ('Attendance.csv','r+') as f:
-        myDataList=f.readlines()
-        nameList=[]
-        for line in myDataList:
-            entry=line.split(',')
-            nameList.append(entry[0])
-        if name not in nameList:
-            Time_now=datetime.now()
-            time_string=Time_now.strftime('%H:%M:%S')
-            f.writelines(f'\n{name},{time_string}')
+    directories=os.listdir("C:\Pragyan_AI_Internship")
+    # print(directories)
+    todays_date = date.today()
+    sheet_name=f'{todays_date}.csv'
+    
+    
+
+
+    def attendence(name,sheet_name):
+        with open (sheet_name,'r+') as f:
+            
+            myDataList=f.readlines()
+            nameList=[]
+           
+        
+            for line in myDataList:
+             
+                entry=line.split(',')
+            
+                nameList.append(entry[0])
+           
+            if name not in nameList:
+                Time_now=datetime.now()
+                time_string=Time_now.strftime('%H:%M:%S')
+                f.writelines(f'\n{name},{time_string}')
+    if sheet_name in directories:
+        attendence(name,sheet_name)
+    else:
+        h = open(f"{sheet_name}", "w")
+        h.write("NAME,TIME")
+        h.close()
+        
+        attendence(name,sheet_name)
 
 video_capture=cv2.VideoCapture(0)
 while True:
@@ -69,10 +87,9 @@ while True:
     encodings_frame=face_recognition.face_encodings(imgS,faces_loc_frame)
     for encodesFace,facelocations in zip(encodings_frame,faces_loc_frame):
         matches=face_recognition.compare_faces(known_face_encodings,encodesFace,tolerance=0.50)
-        # print(matches)
-        faceDistance=face_recognition.face_distance(known_face_encodings,encodesFace)
        
-        # print(matchIndex)
+        faceDistance=face_recognition.face_distance(known_face_encodings,encodesFace)
+    
         name="Unknown"
        
         if True in matches:
@@ -94,6 +111,7 @@ while True:
                 if len(encode1)>0:
                     Unknown_last+=1
                     name="Unknown"+str(Unknown_last)
+                    
                
                     cv2.imwrite(f'{paths[1]}/{name}.jpg', img)
                     known_face_encodings.append(encode1)
@@ -113,9 +131,6 @@ while True:
             
             
             # Unknown_list.append(name)
-           
-        
-
 
         cv2.rectangle(img,(x1,y2-5),(x2+30,y2+30),(0,255,0),cv2.FILLED)
         cv2.putText(img,name,(x1,y2+20),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
